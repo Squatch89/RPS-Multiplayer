@@ -1,0 +1,50 @@
+body {
+
+    background-color: #000000;
+    color: white;
+    /*position: relative;*/
+}
+
+header {
+    width: 100%;
+    background-color: #ae0001;
+    text-align: center;
+}
+
+.dataBox {
+    width: 200px;
+    height: 200px;
+    border: 1px solid white;
+    text-align: center;
+}
+
+.formWrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+#gameWrapper {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-evenly;
+    margin-top: 25px;
+    margin-bottom: 25px;
+}
+
+#chatBox {
+    width: 500px;
+    height: 100px;
+    background-color: white;
+    color: black;
+    margin: auto;
+    overflow: scroll;
+}
+
+#playerName, #start {
+    margin-top: 25px;
+}
+
+#chat {
+    width: 452px;
+}
