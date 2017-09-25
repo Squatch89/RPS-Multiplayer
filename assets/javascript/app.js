@@ -39,13 +39,29 @@ database.ref("players").orderByChild("dateAdded").on("value", function (snapshot
 
 // Have user select choice
 $(document).find("#playerOne").on("click", ".RPS", function(){
+    // const player1ChoiceRef = database.ref("choices");
   let player1Choice = $(this).text();
   console.log(`player1 choice ${player1Choice}`);
+  database.ref("/choices/player1Choices").set({
+      playerChoice: player1Choice,
+      dateAdded: firebase.database.ServerValue.TIMESTAMP
+  });
 });
 
 $(document).find("#playerTwo").on("click", ".RPS", function(){
+    // const player2ChoiceRef = database.ref("choices");
     let player2Choice = $(this).text();
     console.log(`player2 choice ${player2Choice}`);
+    database.ref("/choices/player2Choices").set({
+        playerChoice: player2Choice,
+        dateAdded: firebase.database.ServerValue.TIMESTAMP
+    });
+});
+
+database.ref("choices").orderByChild("dateAdded").on("value", function(snapshot) {
+   console.log(snapshot.child("player1Choices/playerChoice").val() + " player1 choice");
+    console.log(snapshot.child("player2Choices/playerChoice").val()  +  " player1 choice");
+   
 });
 
 
