@@ -1,4 +1,3 @@
-
 // Initialize Firebase
 var config = {
     apiKey: "AIzaSyCBUmCDAvOqKxMe0Rbpu-5UZTrin1SGciU",
@@ -15,7 +14,7 @@ let player;
 
 
 
-$("#start").on("click", function(){
+$("#start").on("click", function () {
     event.preventDefault();
     player = $("#playerName").val().trim();
     addPlayer();
@@ -24,26 +23,35 @@ $("#start").on("click", function(){
 });
 
 //decide who is player1 or player2 by date added. earliest is player 1
-database.ref("players").orderByChild("dateAdded").on("value", function(snapshot){
+database.ref("players").orderByChild("dateAdded").on("value", function (snapshot) {
     let sv = snapshot.val();
     console.log(sv);
     $("#playerOneName").text(sv.player1.name);
     $("#playerTwoName").text(sv.player2.name);
-
-    if ( (snapshot.child("player1/name").exists()) && (snapshot.child("player2/name").exists()) ) {
-        $("#playerOneRPS").append("<p class = RPS> Rock</p> <p class = RPS> Paper </p> <p class = RPS> Sicssors</p>")
-        $("#playerTwoRPS").append("<p class = RPS> Rock</p> <p class = RPS> Paper </p> <p class = RPS> Sicssors</p>")
+    
+    // Wait until two players are logged in
+    if ((snapshot.child("player1/name").exists()) && (snapshot.child("player2/name").exists())) {
+        // Display rock paper sicscor choices
+        $("#playerOneRPS").append("<p class = RPS> Rock</p>" + "<p class = RPS> Paper </p>" + "<p class = RPS> Scissors</p>");
+        $("#playerTwoRPS").append("<p class = RPS> Rock</p>" + "<p class = RPS> Paper </p>" + "<p class = RPS> Scissors</p>");
     }
 });
 
+// Have user select choice
+$(document).find("#playerOne").on("click", ".RPS", function(){
+  let player1Choice = $(this).text();
+  console.log(`player1 choice ${player1Choice}`);
+});
 
-
-
+$(document).find("#playerTwo").on("click", ".RPS", function(){
+    let player2Choice = $(this).text();
+    console.log(`player2 choice ${player2Choice}`);
+});
 
 
 function addPlayer() {
     const playersRef = database.ref("players");
-    playersRef.once("value").then(function(snapshot){
+    playersRef.once("value").then(function (snapshot) {
         console.log(snapshot.numChildren());
         if (snapshot.numChildren() === 0) {
             database.ref("/players/player1").set({
@@ -52,7 +60,7 @@ function addPlayer() {
             });
             console.log(snapshot.numChildren());
         }
-    else if (snapshot.numChildren() === 1) {
+        else if (snapshot.numChildren() === 1) {
             database.ref("/players/player2").set({
                 name: player,
                 dateAdded: firebase.database.ServerValue.TIMESTAMP
@@ -62,12 +70,17 @@ function addPlayer() {
     })
 }
 
+
+$("#chatSend").on("click", function() {
+    event.preventDefault();
+   let chatMessage = $("#chat").val();
+   $("#chatBox").append(`<p> ${chatMessage} </p>`);
+   $("#chat").val("");
+});
+
 // Check for connected players
 
-// Wait until two players are logged in
-// Display rock paper sicscor choices
-// Make hover effect for them
-// Have user select choice
+
 // Do not let other player see the choice
 // Store user choice in firebase
 // Check firebase for user choices
