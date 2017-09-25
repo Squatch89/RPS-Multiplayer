@@ -13,7 +13,7 @@ header {
 
 .dataBox {
     width: 200px;
-    height: 200px;
+    height: 150px;
     border: 1px solid white;
     text-align: center;
 }
@@ -47,4 +47,19 @@ header {
 
 #chat {
     width: 452px;
+}
+
+#playerOneRPS, #playerTwoRPS {
+    margin-top: 20px;
+    margin: auto;
+    width: 50%;
+}
+
+#playerOneRPS p, #playerTwoRPS p {
+    margin-top: 20px;
+}
+
+#playerOneRPS p:hover, #playerTwoRPS p:hover {
+    color: black;
+    background-color: white;
 }
