@@ -59,9 +59,25 @@ $(document).find("#playerTwo").on("click", ".RPS", function(){
 });
 
 database.ref("choices").orderByChild("dateAdded").on("value", function(snapshot) {
-   console.log(snapshot.child("player1Choices/playerChoice").val() + " player1 choice");
-    console.log(snapshot.child("player2Choices/playerChoice").val()  +  " player1 choice");
+    let player1HasChosen = snapshot.child("player1Choices/playerChoice");
+   console.log(player1HasChosen.val() + " player1 choice");
    
+   let player2HasChosen = snapshot.child("player2Choices/playerChoice");
+   console.log(player2HasChosen.val()  +  " player2 choice");
+    
+    
+    if ( (snapshot.child("player1Choices/playerChoice").exists()) && (snapshot.child("player2Choices/playerChoice").exists()) ) {
+        $("#playerOneRPS").html(`<h2>${player1HasChosen.val()} </h2>`);
+        $("#playerTwoRPS").html(`<h2>${player2HasChosen.val()} </h2>`);
+        
+        if (player1HasChosen.val() === player2HasChosen.val() ) {
+            console.log("values equal");
+        }
+        else if(!player1HasChosen.val() !== player2HasChosen.val() ) {
+            console.log("not equal");
+            if ( (player1HasChosen.val() === "rock" || ) )
+        }
+    }
 });
 
 

@@ -11,6 +11,11 @@ header {
     text-align: center;
 }
 
+h2 {
+    margin-top: 40px;
+    font-size: 36px;
+}
+
 .dataBox {
     width: 200px;
     height: 150px;
