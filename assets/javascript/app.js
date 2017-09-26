@@ -57,15 +57,15 @@ $(document).find("#playerTwo").on("click", ".RPS", function () {
     });
 });
 
-database.ref("choices").orderByChild("dateAdded").on("value", function (snapshot) {
-    let player1HasChosen = snapshot.child("player1Choices/playerChoice");
+database.ref().orderByChild("dateAdded").on("value", function (snapshot) {
+    let player1HasChosen = snapshot.child("choices/player1Choices/playerChoice");
     console.log(player1HasChosen.val() + " player1 choice");
     
-    let player2HasChosen = snapshot.child("player2Choices/playerChoice");
+    let player2HasChosen = snapshot.child("choices/player2Choices/playerChoice");
     console.log(player2HasChosen.val() + " player2 choice");
     
     
-    if ((snapshot.child("player1Choices/playerChoice").exists()) && (snapshot.child("player2Choices/playerChoice").exists())) {
+    if ((snapshot.child("choices/player1Choices/playerChoice").exists()) && (snapshot.child("choices/player2Choices/playerChoice").exists())) {
         $("#playerOneRPS").html(`<h2>${player1HasChosen.val()} </h2>`);
         $("#playerTwoRPS").html(`<h2>${player2HasChosen.val()} </h2>`);
         
@@ -74,11 +74,12 @@ database.ref("choices").orderByChild("dateAdded").on("value", function (snapshot
         }
         else if ((player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" )) {
             console.log("player 1 wins");
-            // $("#arena").html(`<h2> ${database.ref("players").child("player1/name").val()} Has Won!</h2>`)
+            $("#arena").html(`<h2> ${snapshot.child("players").child("player1/name").val()} Has Won!</h2>`)
         }
         else {
             console.log("player 2 wins");
-            $("#arena").html(`<h2> ${snapshot.parent} Has Won!</h2>`)
+            console.log(snapshot.child("players").child("player2/name").val());
+            $("#arena").html(`<h2> ${snapshot.child("players").child("player2/name").val()} Has Won!</h2>`)
         }
     }
 });
