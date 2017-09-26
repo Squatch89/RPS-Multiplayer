@@ -13,7 +13,6 @@ const database = firebase.database();
 let player;
 
 
-
 $("#start").on("click", function () {
     event.preventDefault();
     player = $("#playerName").val().trim();
@@ -38,17 +37,17 @@ database.ref("players").orderByChild("dateAdded").on("value", function (snapshot
 });
 
 // Have user select choice
-$(document).find("#playerOne").on("click", ".RPS", function(){
+$(document).find("#playerOne").on("click", ".RPS", function () {
     // const player1ChoiceRef = database.ref("choices");
-  let player1Choice = $(this).text();
-  console.log(`player1 choice ${player1Choice}`);
-  database.ref("/choices/player1Choices").set({
-      playerChoice: player1Choice,
-      dateAdded: firebase.database.ServerValue.TIMESTAMP
-  });
+    let player1Choice = $(this).text();
+    console.log(`player1 choice ${player1Choice}`);
+    database.ref("/choices/player1Choices").set({
+        playerChoice: player1Choice,
+        dateAdded: firebase.database.ServerValue.TIMESTAMP
+    });
 });
 
-$(document).find("#playerTwo").on("click", ".RPS", function(){
+$(document).find("#playerTwo").on("click", ".RPS", function () {
     // const player2ChoiceRef = database.ref("choices");
     let player2Choice = $(this).text();
     console.log(`player2 choice ${player2Choice}`);
@@ -58,24 +57,28 @@ $(document).find("#playerTwo").on("click", ".RPS", function(){
     });
 });
 
-database.ref("choices").orderByChild("dateAdded").on("value", function(snapshot) {
+database.ref("choices").orderByChild("dateAdded").on("value", function (snapshot) {
     let player1HasChosen = snapshot.child("player1Choices/playerChoice");
-   console.log(player1HasChosen.val() + " player1 choice");
-   
-   let player2HasChosen = snapshot.child("player2Choices/playerChoice");
-   console.log(player2HasChosen.val()  +  " player2 choice");
+    console.log(player1HasChosen.val() + " player1 choice");
+    
+    let player2HasChosen = snapshot.child("player2Choices/playerChoice");
+    console.log(player2HasChosen.val() + " player2 choice");
     
     
-    if ( (snapshot.child("player1Choices/playerChoice").exists()) && (snapshot.child("player2Choices/playerChoice").exists()) ) {
+    if ((snapshot.child("player1Choices/playerChoice").exists()) && (snapshot.child("player2Choices/playerChoice").exists())) {
         $("#playerOneRPS").html(`<h2>${player1HasChosen.val()} </h2>`);
         $("#playerTwoRPS").html(`<h2>${player2HasChosen.val()} </h2>`);
         
-        if (player1HasChosen.val() === player2HasChosen.val() ) {
-            console.log("values equal");
+        if (player1HasChosen.val() === player2HasChosen.val()) {
+            console.log("values equal it is a tie");
         }
-        else if(!player1HasChosen.val() !== player2HasChosen.val() ) {
-            console.log("not equal");
-            if ( (player1HasChosen.val() === "rock" || ) )
+        else if ((player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" )) {
+            console.log("player 1 wins");
+            // $("#arena").html(`<h2> ${database.ref("players").child("player1/name").val()} Has Won!</h2>`)
+        }
+        else {
+            console.log("player 2 wins");
+            $("#arena").html(`<h2> ${snapshot.parent} Has Won!</h2>`)
         }
     }
 });
@@ -103,11 +106,11 @@ function addPlayer() {
 }
 
 
-$("#chatSend").on("click", function() {
+$("#chatSend").on("click", function () {
     event.preventDefault();
-   let chatMessage = $("#chat").val();
-   $("#chatBox").append(`<p> ${chatMessage} </p>`);
-   $("#chat").val("");
+    let chatMessage = $("#chat").val();
+    $("#chatBox").append(`<p> ${chatMessage} </p>`);
+    $("#chat").val("");
 });
 
 // Check for connected players
