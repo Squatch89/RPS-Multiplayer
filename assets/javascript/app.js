@@ -104,6 +104,14 @@ database.ref().on("value", function (snapshot) {
         if (player1HasChosen.val() === player2HasChosen.val()) {
             console.log("values equal it is a tie");
             $("#arena").html(`<h2> TIE </h2>`);
+            // setTimeout(function() {
+            //     player1HasChosen.update({
+            //         playerChoice: ""
+            //     });
+            //     player2HasChosen.update({
+            //         playerChoice: ""
+            //     })
+            // } 2000)
         }
         else if ( (player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" ) ) {
             console.log("player 1 wins");
@@ -127,6 +135,9 @@ database.ref().on("value", function (snapshot) {
 // function playerDisco {
 //
 // };
+
+
+
 
 function addPlayer() {
     const playersRef = database.ref("players");
