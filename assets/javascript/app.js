@@ -13,6 +13,7 @@ const database = firebase.database();
 let player;
 let playerCount = 0;
 
+
 const connectedRef = firebase.database().ref(".info/connected");
 connectedRef.on("value", function(snap) {
     if (snap.val() === true) {
@@ -104,35 +105,60 @@ database.ref().on("value", function (snapshot) {
         if (player1HasChosen.val() === player2HasChosen.val()) {
             console.log("values equal it is a tie");
             $("#arena").html(`<h2> TIE </h2>`);
-            // setTimeout(function() {
-            //     player1HasChosen.update({
-            //         playerChoice: ""
-            //     });
-            //     player2HasChosen.update({
-            //         playerChoice: ""
-            //     })
-            // } 2000)
+            setTimeout(function() {
+                updatePlayer1HasChosen();
+                updatePlayer2HasChosen();
+                $("#arena").empty();
+            }, 2000)
         }
         else if ( (player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" ) ) {
             console.log("player 1 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player1/name").val()} Has Won!</h2>`);
+            setTimeout(function() {
+                updatePlayer1HasChosen();
+                updatePlayer2HasChosen();
+                $("#arena").empty();
+            }, 2000)
         }
         else {
             console.log("player 2 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player2/name").val()} Has Won!</h2>`);
+            setTimeout(function() {
+                updatePlayer1HasChosen();
+                updatePlayer2HasChosen();
+                $("#arena").empty();
+            }, 2000)
         }
     }
 });
 
-// function updatePlayer1 {
+//
+// function updatePlayer1() {
 //
 // };
+
+function updatePlayer1HasChosen() {
+    database.ref().child("choices/player1Choices/playerChoice").set({
+        playerChoice: null
+    });
+    $("#playerOneRPS").empty();
+    $("#playerOneRPS").append("<p class = RPS>Rock</p>" + "<p class = RPS>Paper </p>" + "<p class = RPS>Scissors</p>");
+};
+
+// function updatePlayer2() {
 //
-// function updatePlayer2 {
 //
 // };
-//
-// function playerDisco {
+
+function updatePlayer2HasChosen() {
+    database.ref().child("choices/player2Choices/playerChoice").set({
+        playerChoice: null
+    });
+    $("#playerTwoRPS").empty();
+    $("#playerTwoRPS").append("<p class = RPS>Rock</p>" + "<p class = RPS>Paper </p>" + "<p class = RPS>Scissors</p>");
+};
+
+// function playerDisco() {
 //
 // };
 
