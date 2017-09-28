@@ -12,7 +12,7 @@ firebase.initializeApp(config);
 const database = firebase.database();
 const connectionsRef = database.ref("/connections");
 const playersRef = database.ref("players");
-// const messag = firebase.messaging();
+const messageRef = database.ref("/messages");
 let player;
 let playerCount = 0;
 
@@ -23,13 +23,16 @@ connectedRef.on("value", function (snap) {
         console.log("connected");
         
         const con = connectionsRef.push(true);
-        
         con.onDisconnect().remove();
+        // database.ref("players/player1").onDisconnect.set(null);
+        // database.ref("players/player2").onDisconnect.set(null);
         // createPlayer1();
         // createPlayer2();
-        updatePlayer1();
-        updatePlayer2();
+        // updatePlayer1();
+        // updatePlayer2();
+        clearMessages();
     }
+    
 });
 
 $("#start").on("click", function () {
@@ -59,15 +62,19 @@ database.ref("players").orderByChild("dateAdded").on("value", function (snapshot
 $("#chatSend").on("click", function () {
     event.preventDefault();
     let chatMessage = $("#chat").val();
-    $("#chatBox").append(`<p>${chatMessage}</p>`);
+    messageRef.push({
+        text: chatMessage
+    });
     $("#chat").val("");
 });
 
 // Store user choice in firebase
 // Have user select choice
 $(document).find("#playerOne").on("click", ".RPS", function () {
+    
     // const player1ChoiceRef = database.ref("choices");
     let player1Choice = $(this).text().trim();
+    
     // console.log(`player1 choice ${player1Choice}`);
     database.ref("/choices/player1Choices").set({
         playerChoice: player1Choice,
@@ -76,8 +83,10 @@ $(document).find("#playerOne").on("click", ".RPS", function () {
 });
 
 $(document).find("#playerTwo").on("click", ".RPS", function () {
+    
     // const player2ChoiceRef = database.ref("choices");
     let player2Choice = $(this).text().trim();
+    
     // console.log(`player2 choice ${player2Choice}`);
     database.ref("/choices/player2Choices").set({
         playerChoice: player2Choice,
@@ -95,13 +104,16 @@ database.ref().on("value", function (snapshot) {
     
     // Display each players choice in the arena div
     if ((snapshot.child("choices/player1Choices/playerChoice").exists()) && (snapshot.child("choices/player2Choices/playerChoice").exists())) {
+       
         $("#playerOneRPS").html(`<h2>${player1HasChosen.val()}</h2>`);
         $("#playerTwoRPS").html(`<h2>${player2HasChosen.val()}</h2>`);
         
         // Determine winner/loser/tie
         if (player1HasChosen.val() === player2HasChosen.val()) {
+          
             console.log("values equal it is a tie");
             $("#arena").html(`<h2> TIE </h2>`);
+            
             setTimeout(function () {
                 updatePlayer1HasChosen();
                 updatePlayer2HasChosen();
@@ -109,8 +121,10 @@ database.ref().on("value", function (snapshot) {
             }, 2000)
         }
         else if ((player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" )) {
+           
             console.log("player 1 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player1/name").val()} Has Won!</h2>`);
+           
             setTimeout(function () {
                 updatePlayer1HasChosen();
                 updatePlayer2HasChosen();
@@ -120,6 +134,7 @@ database.ref().on("value", function (snapshot) {
         else {
             console.log("player 2 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player2/name").val()} Has Won!</h2>`);
+          
             setTimeout(function () {
                 updatePlayer1HasChosen();
                 updatePlayer2HasChosen();
@@ -169,15 +184,28 @@ function updatePlayer2HasChosen() {
     $("#playerTwoRPS").empty().append("<p class = RPS>Rock</p>" + "<p class = RPS>Paper </p>" + "<p class = RPS>Scissors</p>");
 }
 
+function listenForMessage() {
+    messageRef.on("child_added", function (snapshot) {
+        let msg = $(`<p>${snapshot.child("text").val()}</p>`);
+        console.log("this is msg " + msg);
+        $("#chatBox").append(msg);
+    });
+}
+
+function clearMessages() {
+    messageRef.remove();
+}
+
+listenForMessage();
+
 // function playerDisco() {
 //
 // };
 
-
 function addPlayer() {
     playersRef.once("value").then(function (snapshot) {
-        // console.log(snapshot.numChildren());
-        if (playerCount === 0) {
+        console.log(snapshot.numChildren());
+        if (snapshot.numChildren() === 0) {
             
             //increases playerCount so next player will be player 1
             playerCount++;
@@ -190,7 +218,7 @@ function addPlayer() {
                 dateAdded: firebase.database.ServerValue.TIMESTAMP
             });
         }
-        else if (playerCount === 1) {
+        else if (snapshot.numChildren() === 1) {
             
             //increases playerCount so it will be 2
             playerCount++;
@@ -204,10 +232,3 @@ function addPlayer() {
         }
     })
 }
-
-
-// Do not let other player see the choice
-
-
-// Reset box for new inputs
-// Let player be able to log out
