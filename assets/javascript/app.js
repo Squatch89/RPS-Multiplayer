@@ -15,6 +15,8 @@ const playersRef = database.ref("players");
 const messageRef = database.ref("/messages");
 let player;
 let playerCount = 0;
+let player1;
+let player2;
 
 // Check for connected players
 const connectedRef = firebase.database().ref(".info/connected");
@@ -24,16 +26,17 @@ connectedRef.on("value", function (snap) {
         
         const con = connectionsRef.push(true);
         con.onDisconnect().remove();
-        // database.ref("players/player1").onDisconnect.set(null);
-        // database.ref("players/player2").onDisconnect.set(null);
-        // createPlayer1();
-        // createPlayer2();
-        // updatePlayer1();
-        // updatePlayer2();
+      
+        updatePlayer1();
+        updatePlayer2();
         clearMessages();
     }
-    
 });
+
+//session storage
+//store each player's data in their own session
+//convert to string
+
 
 $("#start").on("click", function () {
     event.preventDefault();
@@ -41,22 +44,7 @@ $("#start").on("click", function () {
     addPlayer();
     console.log(player);
     $("#playerName").val("");
-});
-
-//decide who is player1 or player2 by date added. earliest is player 1
-database.ref("players").orderByChild("dateAdded").on("value", function (snapshot) {
-    let sv = snapshot.val();
-    console.log(sv);
-    console.log("this is in the fiirst database ref before displaying RPS");
-    $("#playerOneName").text(snapshot.child("player1/name").val());
-    $("#playerTwoName").text(snapshot.child("player2/name").val());
     
-    // Wait until two players are logged in
-    if ((snapshot.child("player1/name").val() !== null) && (snapshot.child("player2/name").val() !== null)) {
-        // Display rock paper sicscor choices
-        $("#playerOneRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
-        $("#playerTwoRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
-    }
 });
 
 $("#chatSend").on("click", function () {
@@ -80,6 +68,7 @@ $(document).find("#playerOne").on("click", ".RPS", function () {
         playerChoice: player1Choice,
         dateAdded: firebase.database.ServerValue.TIMESTAMP
     });
+    
 });
 
 $(document).find("#playerTwo").on("click", ".RPS", function () {
@@ -94,6 +83,30 @@ $(document).find("#playerTwo").on("click", ".RPS", function () {
     });
 });
 
+
+//decide who is player1 or player2 by date added. earliest is player 1
+database.ref("players").orderByChild("dateAdded").on("value", function (snapshot) {
+    let sv = snapshot.val();
+    console.log(sv);
+    console.log("this is in the fiirst database ref before displaying RPS");
+    $("#playerOneName").text(snapshot.child("player1/name").val());
+    $("#playerTwoName").text(snapshot.child("player2/name").val());
+    
+    // player1 = snapshot.child("player1/name").val();
+    // player2 = snapshot.child("player2/name").val();
+    
+    // Wait until two players are logged in
+    if ((snapshot.child("player1/name").val() !== null) && (snapshot.child("player2/name").val() !== null)) {
+        // Display rock paper sicscor choices
+        $("#playerOneRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
+        $("#playerTwoRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
+    }
+    else {
+        $("#playerOneRPS").empty();
+        $("#playerTwoRPS").empty();
+    }
+});
+
 // Check firebase for user choices
 database.ref().on("value", function (snapshot) {
     let player1HasChosen = snapshot.child("choices/player1Choices/playerChoice");
@@ -104,13 +117,13 @@ database.ref().on("value", function (snapshot) {
     
     // Display each players choice in the arena div
     if ((snapshot.child("choices/player1Choices/playerChoice").exists()) && (snapshot.child("choices/player2Choices/playerChoice").exists())) {
-       
+        
         $("#playerOneRPS").html(`<h2>${player1HasChosen.val()}</h2>`);
         $("#playerTwoRPS").html(`<h2>${player2HasChosen.val()}</h2>`);
         
         // Determine winner/loser/tie
         if (player1HasChosen.val() === player2HasChosen.val()) {
-          
+            
             console.log("values equal it is a tie");
             $("#arena").html(`<h2> TIE </h2>`);
             
@@ -121,10 +134,10 @@ database.ref().on("value", function (snapshot) {
             }, 2000)
         }
         else if ((player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" )) {
-           
+            
             console.log("player 1 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player1/name").val()} Has Won!</h2>`);
-           
+            
             setTimeout(function () {
                 updatePlayer1HasChosen();
                 updatePlayer2HasChosen();
@@ -134,7 +147,7 @@ database.ref().on("value", function (snapshot) {
         else {
             console.log("player 2 wins");
             $("#arena").html(`<h2> ${snapshot.child("players").child("player2/name").val()} Has Won!</h2>`);
-          
+            
             setTimeout(function () {
                 updatePlayer1HasChosen();
                 updatePlayer2HasChosen();
@@ -144,18 +157,9 @@ database.ref().on("value", function (snapshot) {
     }
 });
 
-function createPlayer1() {
-    database.ref("/players/player1").set({
-        name: "",
-        onlineStatus: false,
-        // connectedKey: database.ref("/connections").child().key,
-        dateAdded: firebase.database.ServerValue.TIMESTAMP
-    });
-    
-}
-
 function updatePlayer1() {
     database.ref("players/player1").set(null);
+    playerCount = 0;
 }
 
 function updatePlayer1HasChosen() {
@@ -165,16 +169,9 @@ function updatePlayer1HasChosen() {
     $("#playerOneRPS").empty().append("<p class = RPS>Rock</p>" + "<p class = RPS>Paper </p>" + "<p class = RPS>Scissors</p>");
 }
 
-function createPlayer2() {
-    database.ref("/players/player2").set({
-        name: "",
-        onlineStatus: false,
-        dateAdded: firebase.database.ServerValue.TIMESTAMP
-    });
-}
-
 function updatePlayer2() {
     database.ref("players/player2").set(null);
+    // playerCount = 1;
 }
 
 function updatePlayer2HasChosen() {
@@ -196,17 +193,10 @@ function clearMessages() {
     messageRef.remove();
 }
 
-listenForMessage();
-
-// function playerDisco() {
-//
-// };
-
 function addPlayer() {
     playersRef.once("value").then(function (snapshot) {
         console.log(snapshot.numChildren());
         if (snapshot.numChildren() === 0) {
-            
             //increases playerCount so next player will be player 1
             playerCount++;
             console.log(playerCount);
@@ -219,7 +209,6 @@ function addPlayer() {
             });
         }
         else if (snapshot.numChildren() === 1) {
-            
             //increases playerCount so it will be 2
             playerCount++;
             console.log(playerCount);
@@ -232,3 +221,18 @@ function addPlayer() {
         }
     })
 }
+
+listenForMessage();
+
+// sessionStorage.clear();
+//
+// if (playerCount === 0) {
+//
+// }
+// else {
+//
+// }
+
+// $("#playerOneName").text(sessionStorage.getItem("player1"));
+// $("#playerTwoName").text(sessionStorage.getItem("player2"));
+
