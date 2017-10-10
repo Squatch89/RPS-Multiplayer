@@ -11,27 +11,17 @@ firebase.initializeApp(config);
 
 const database = firebase.database();
 const connectionsRef = database.ref("/connections");
-const playersRef = database.ref("players");
+const playersRef = database.ref("/players");
 const messageRef = database.ref("/messages");
 let player;
 let playerCount = 0;
-let player1;
-let player2;
+let playerNum = false;
+let currentPlayers = null;
+let playerOneExists = false;
+let playerTwoExists = false;
+let playerOneData = null;
+let playerTwoData = null;
 
-// Check for connected players
-const connectedRef = firebase.database().ref(".info/connected");
-connectedRef.on("value", function (snap) {
-    if (snap.val() === true) {
-        console.log("connected");
-        
-        const con = connectionsRef.push(true);
-        con.onDisconnect().remove();
-      
-        updatePlayer1();
-        updatePlayer2();
-        clearMessages();
-    }
-});
 
 //session storage
 //store each player's data in their own session
@@ -40,11 +30,13 @@ connectedRef.on("value", function (snap) {
 
 $("#start").on("click", function () {
     event.preventDefault();
+    if ($("#playerName").val() !== "") {
     player = $("#playerName").val().trim();
-    addPlayer();
+    // addPlayer();
+        getInGame();
     console.log(player);
     $("#playerName").val("");
-    
+    }
 });
 
 $("#chatSend").on("click", function () {
@@ -83,20 +75,51 @@ $(document).find("#playerTwo").on("click", ".RPS", function () {
     });
 });
 
-
-//decide who is player1 or player2 by date added. earliest is player 1
-database.ref("players").orderByChild("dateAdded").on("value", function (snapshot) {
-    let sv = snapshot.val();
-    console.log(sv);
-    console.log("this is in the fiirst database ref before displaying RPS");
-    $("#playerOneName").text(snapshot.child("player1/name").val());
-    $("#playerTwoName").text(snapshot.child("player2/name").val());
+// Tracks changes in key which contains player objects
+database.ref("players").on("value", function(snapshot) {
     
-    // player1 = snapshot.child("player1/name").val();
-    // player2 = snapshot.child("player2/name").val();
+    // length of the 'players' array
+    currentPlayers = snapshot.numChildren();
     
-    // Wait until two players are logged in
-    if ((snapshot.child("player1/name").val() !== null) && (snapshot.child("player2/name").val() !== null)) {
+    // Check to see if players exist
+    playerOneExists = snapshot.child("1").exists();
+    playerTwoExists = snapshot.child("2").exists();
+    
+    // Player data objects
+    playerOneData = snapshot.child("player1/name").val();
+    playerTwoData = snapshot.child("player2/name").val();
+    
+    // If theres a player 1, fill in name and win loss data
+    if (playerOneExists) {
+        $("#playerOneName").text(snapshot.child("1/name").val());
+        // $("#player1-wins").text("Wins: " + playerOneData.wins);
+        // $("#player1-losses").text("Losses: " + playerOneData.losses);
+    }
+    else {
+        
+        // If there is no player 1, clear win/loss data and show waiting
+        $("#playerOneName").text("Waiting for Player 1");
+        // $("#player1-wins").empty();
+        // $("#player1-losses").empty();
+        updatePlayer1();
+    }
+    
+    // If theres a player 2, fill in name and win/loss data
+    if (playerTwoExists) {
+        $("#playerTwoName").text(snapshot.child("2/name").val());
+        // $("#player2-wins").text("Wins: " + playerTwoData.wins);
+        // $("#player2-losses").text("Losses: " + playerTwoData.losses);
+    }
+    else {
+        
+        // If no player 2, clear win/loss and show waiting
+        $("#playerTwoName").text("Waiting for Player 2");
+        // $("#player2-wins").empty();
+        // $("#player2-losses").empty();
+        updatePlayer2();
+    }
+    
+    if (playerOneExists && playerTwoExists) {
         // Display rock paper sicscor choices
         $("#playerOneRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
         $("#playerTwoRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
@@ -105,7 +128,29 @@ database.ref("players").orderByChild("dateAdded").on("value", function (snapshot
         $("#playerOneRPS").empty();
         $("#playerTwoRPS").empty();
     }
+  
+   
 });
+
+// //decide who is player1 or player2 by date added. earliest is player 1
+// database.ref("players").orderByChild("dateAdded").on("value", function (snapshot) {
+//     let sv = snapshot.val();
+//     console.log(sv);
+//     console.log("this is in the first database ref before displaying RPS");
+//     // $("#playerOneName").text(snapshot.child("player1/name").val());
+//     // $("#playerTwoName").text(snapshot.child("player2/name").val());
+//
+//     // Wait until two players are logged in
+//     if ((snapshot.child("player1/name").val() !== null) && (snapshot.child("player2/name").val() !== null)) {
+//         // Display rock paper sicscor choices
+//         $("#playerOneRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
+//         $("#playerTwoRPS").html("<p class = RPS>Rock</p>" + "<p class = RPS>Paper</p>" + "<p class = RPS>Scissors</p>");
+//     }
+//     else {
+//         $("#playerOneRPS").empty();
+//         $("#playerTwoRPS").empty();
+//     }
+// });
 
 // Check firebase for user choices
 database.ref().on("value", function (snapshot) {
@@ -136,7 +181,7 @@ database.ref().on("value", function (snapshot) {
         else if ((player1HasChosen.val() === "Rock" && player2HasChosen.val() === "Scissors" ) || (player1HasChosen.val() === "Scissors" && player2HasChosen.val() === "Paper") || (player1HasChosen.val() === "Paper" && player2HasChosen.val() === "Rock" )) {
             
             console.log("player 1 wins");
-            $("#arena").html(`<h2> ${snapshot.child("players").child("player1/name").val()} Has Won!</h2>`);
+            $("#arena").html(`<h2> ${snapshot.child("players").child("1/name").val()} Has Won!</h2>`);
             
             setTimeout(function () {
                 updatePlayer1HasChosen();
@@ -146,7 +191,7 @@ database.ref().on("value", function (snapshot) {
         }
         else {
             console.log("player 2 wins");
-            $("#arena").html(`<h2> ${snapshot.child("players").child("player2/name").val()} Has Won!</h2>`);
+            $("#arena").html(`<h2> ${snapshot.child("players").child("2/name").val()} Has Won!</h2>`);
             
             setTimeout(function () {
                 updatePlayer1HasChosen();
@@ -193,46 +238,65 @@ function clearMessages() {
     messageRef.remove();
 }
 
-function addPlayer() {
-    playersRef.once("value").then(function (snapshot) {
-        console.log(snapshot.numChildren());
-        if (snapshot.numChildren() === 0) {
-            //increases playerCount so next player will be player 1
-            playerCount++;
-            console.log(playerCount);
-            
-            database.ref("/players/player1").set({
-                name: player,
-                onlineStatus: false,
-                // connectedKey: database.ref("/connections").child().key,
-                dateAdded: firebase.database.ServerValue.TIMESTAMP
-            });
+
+// Function to get in the game
+function getInGame() {
+    
+    // For adding disconnects to the chat with a unique id (the date/time the user entered the game)
+    // Needed because Firebase's '.push()' creates its unique keys client side,
+    // so you can't ".push()" in a ".onDisconnect"
+    let chatDataDisc = database.ref("/chat/" + Date.now());
+    
+    // Checks for current players, if theres a player one connected, then the user becomes player 2.
+    // If there is no player one, then the user becomes player 1
+    if (currentPlayers < 2) {
+        
+        if (playerOneExists) {
+            playerNum = 2;
         }
-        else if (snapshot.numChildren() === 1) {
-            //increases playerCount so it will be 2
-            playerCount++;
-            console.log(playerCount);
-            
-            database.ref("/players/player2").set({
-                name: player,
-                onlineStatus: false,
-                dateAdded: firebase.database.ServerValue.TIMESTAMP
-            });
+        else {
+            playerNum = 1;
         }
-    })
+        
+        // Creates key based on assigned player number
+        playerRef = database.ref("/players/" + playerNum);
+        
+        // Creates player object. 'choice' is unnecessary here, but I left it in to be as complete as possible
+        playerRef.set({
+            name: player,
+            wins: 0,
+            losses: 0,
+            choice: null
+        });
+        
+        // On disconnect remove this user's player object
+        playerRef.onDisconnect().remove();
+        
+        // Send disconnect message to chat with Firebase server generated timestamp and id of '0' to denote system message
+        chatDataDisc.onDisconnect().set({
+            name: player,
+            time: firebase.database.ServerValue.TIMESTAMP,
+            message: "has disconnected.",
+            idNum: 0
+        });
+        
+        // // Remove name input box and show current player number.
+        // $("#swap-zone").html("<h2>Hi " + username + "! You are Player " + playerNum + "</h2>");
+    }
+    else {
+        
+        // If current players is "2", will not allow the player to join
+        alert("Sorry, Game Full! Try Again Later!");
+    }
 }
+
+
+
+$(document).ready( function() {
+    clearMessages();
+});
 
 listenForMessage();
 
-// sessionStorage.clear();
-//
-// if (playerCount === 0) {
-//
-// }
-// else {
-//
-// }
 
-// $("#playerOneName").text(sessionStorage.getItem("player1"));
-// $("#playerTwoName").text(sessionStorage.getItem("player2"));
 
